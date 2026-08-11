@@ -1,0 +1,23 @@
+# Requirements for a FastAPI-based personal AI chatbot using the Groq LLM provider
+
+# Core web framework
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+
+# HTTP clients and env
+httpx>=0.24.0
+python-dotenv>=1.0.0
+python-multipart>=0.0.6
+
+# Data validation & settings management
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Logging
+loguru>=0.7.0l̥
+
+# PDF extraction
+pymupdf>=1.23.0
+
+# Groq LLM SDK
+goggle-genai

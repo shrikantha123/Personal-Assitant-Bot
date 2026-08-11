@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShrikAi — Personal AI Assistant</title>
+  <meta name="description" content="ShrikAi is your personal AI assistant powered by your resume and personal document." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-gradient-start: #e8f8ef;
+      --bg-gradient-end:   #f8fffe;
+      --surface:          #ffffff;
+      --surface-alt:      #f2f9f5;
+      --border:           #e4eeea;
+      --text-primary:     #111318;
+      --text-secondary:   #6b7280;
+      --text-hint:        #9ca3af;
+      --user-bubble-bg:   #e6f4ec;
+      --user-bubble-text: #111318;
+      --input-bg:         #ffffff;
+      --input-border:     #dde8e3;
+      --green-orb-light:  #8aed3c;
+      --green-orb-dark:   #2d8a44;
+      --shadow-sm:        0 1px 3px rgba(0,0,0,0.07);
+      --shadow-md:        0 4px 16px rgba(0,0,0,0.09);
+      --radius-sm:        12px;
+      --radius-md:        18px;
+      --radius-lg:        24px;
+      --font:             'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* ─── Phone Shell ─────────────────────────────────── */
+    .phone-shell {
+      width: 100%;
+      max-width: 410px;
+      height: calc(100vh - 32px);
+      max-height: 844px;
+      min-height: 560px;
+      background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
+      border-radius: 44px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    /* ─── Status Bar (No Battery / Charging Icon) ────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex-shrink: 0;
+    }
+    .status-bar .time { letter-spacing: -0.3px; }
+    .status-icons { display: flex; gap: 6px; align-items: center; }
+    .status-icons svg { width: 18px; height: 18px; fill: var(--text-primary); }
+
+    /* ─── Header ─────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 22px;
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; }
+    .header-icon {
+      width: 38px; height: 38px;
+      background: var(--surface);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-icon svg { width: 20px; height: 20px; stroke: var(--text-primary); fill: none; stroke-width: 2; }
+    .header-title { font-size: 17px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.1px; }
+    
+    .header-avatar-img {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid #2db54e;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ─── Screens ────────────────────────────────────── */
+    #welcome-screen, #chat-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #chat-screen { display: none; }
+
+    /* ─── Welcome Screen ─────────────────────────────── */
+    .welcome-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 20px 0;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .welcome-body::-webkit-scrollbar { width: 3px; }
+    .welcome-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Candidate Profile Avatar */
+    .avatar-hero-wrap {
+      width: 80px; height: 80px;
+      position: relative;
+      margin-bottom: 16px;
+      flex-shrink: 0;
+    }
+    .avatar-hero-img {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #2db54e;
+      box-shadow: 0 8px 24px rgba(45,181,78,0.3);
+    }
+
+    .welcome-greeting {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      text-align: center;
+      line-height: 1.3;
+      letter-spacing: -0.2px;
+      margin-bottom: 8px;
+    }
+    .welcome-sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.45;
+      max-width: 280px;
+      margin-bottom: 16px;
+    }
+
+    /* Suggestion Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 11px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.35;
+      cursor: pointer;
+      transition: box-shadow 0.18s, transform 0.18s, background 0.18s;
+      box-shadow: var(--shadow-sm);
+    }
+    .card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+      background: #fafffe;
+    }
+    .card:active { transform: translateY(0); }
+
+    .refresh-btn {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13.5px; font-weight: 500; color: var(--text-secondary);
+      font-family: var(--font);
+      background: none; border: none; cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 0;
+      transition: color 0.15s;
+      align-self: flex-start;
+    }
+    .refresh-btn:hover { color: var(--text-primary); }
+    .refresh-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ─── Input Area (shared) ─────────────────────────── */
+    .input-area {
+      padding: 12px 16px 10px;
+      background: transparent;
+      flex-shrink: 0;
+    }
+    .input-box {
+      background: var(--input-bg);
+      border: 1.5px solid var(--input-border);
+      border-radius: var(--radius-md);
+      padding: 14px 14px 42px;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-box:focus-within {
+      border-color: #7adf2e;
+      box-shadow: 0 0 0 3px rgba(122,223,46,0.12), var(--shadow-sm);
+    }
+    .input-box textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: var(--font);
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-primary);
+      background: transparent;
+      line-height: 1.5;
+      min-height: 40px;
+      max-height: 120px;
+    }
+    .input-box textarea::placeholder { color: var(--text-hint); }
+
+    .input-actions {
+      position: absolute;
+      bottom: 10px; left: 12px; right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .input-left-actions { display: flex; align-items: center; gap: 0; }
+    .tone-btn {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
+      background: none; border: none; cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 7px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .tone-btn:hover { background: var(--surface-alt); color: var(--text-primary); }
+    .tone-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+    .chevron { width: 11px !important; height: 11px !important; }
+
+    .input-right-actions { display: flex; align-items: center; gap: 6px; }
+
+    .send-btn {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #7adf2e, #2db54e);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 2px 8px rgba(45,181,78,0.4);
+      opacity: 0.5;
+    }
+    .send-btn.active { opacity: 1; }
+    .send-btn:hover.active { transform: scale(1.08); box-shadow: 0 4px 14px rgba(45,181,78,0.5); }
+    .send-btn:active.active { transform: scale(0.96); }
+    .send-btn svg { width: 16px; height: 16px; stroke: white; fill: none; stroke-width: 2.2; }
+
+    .input-disclaimer {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-hint);
+      margin-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    /* ─── Chat Screen ─────────────────────────────────── */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar { width: 3px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* User Message */
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; }
+    .msg-row.user { justify-content: flex-end; }
+    .msg-row.ai   { justify-content: flex-start; }
+
+    .msg-bubble {
+      max-width: 78%;
+      padding: 12px 15px;
+      border-radius: 18px;
+      font-size: 14.5px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+    .msg-row.user .msg-bubble {
+      background: var(--user-bubble-bg);
+      border-bottom-right-radius: 4px;
+    }
+    .msg-row.ai .msg-bubble {
+      background: transparent;
+      padding: 0;
+      border-bottom-left-radius: 4px;
+    }
+
+    .ai-avatar-sm {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1.5px solid #2db54e;
+      flex-shrink: 0;
+      align-self: flex-end;
+    }
+
+    /* AI message text */
+    .ai-text { font-size: 14.5px; font-weight: 400; color: var(--text-primary); line-height: 1.6; }
+    .ai-text strong, .ai-text b { font-weight: 700; }
+
+    /* Typing indicator */
+    .typing-dots {
+      display: flex; gap: 5px; padding: 4px 0;
+    }
+    .typing-dots span {
+      width: 7px; height: 7px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: dotBounce 1.2s ease-in-out infinite;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotBounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: 0.5; }
+      40%            { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* Chat input area bottom */
+    .chat-input-area {
+      padding: 10px 16px 18px;
+      flex-shrink: 0;
+    }
+    .chat-input-box {
+      background: var(--input-bg);
+      border: 1.5px solid var(--input-border);
+      border-radius: 50px;
+      padding: 11px 14px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .chat-input-box:focus-within {
+      border-color: #7adf2e;
+      box-shadow: 0 0 0 3px rgba(122,223,46,0.12), var(--shadow-sm);
+    }
+    .chat-input-box input {
+      flex: 1;
+      border: none; outline: none;
+      font-family: var(--font);
+      font-size: 14.5px;
+      font-weight: 400;
+      color: var(--text-primary);
+      background: transparent;
+    }
+    .chat-input-box input::placeholder { color: var(--text-hint); }
+    .chat-input-box .send-btn { width: 28px; height: 28px; }
+    .chat-input-box .send-btn svg { width: 14px; height: 14px; }
+
+    /* ─── Animations ──────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .msg-row { animation: fadeUp 0.22s ease both; }
+
+    .ai-text p { margin-bottom: 8px; }
+    .ai-text p:last-child { margin-bottom: 0; }
+
+    @media (max-width: 480px) {
+      html, body {
+        background: var(--bg-gradient-start);
+        align-items: stretch;
+      }
+      .phone-shell {
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .status-bar { padding-top: 8px; }
+      .welcome-body { padding: 12px 16px 0; }
+    }
+
+    @media (max-height: 700px) and (min-width: 481px) {
+      .phone-shell {
+        height: calc(100vh - 16px);
+        min-height: 480px;
+      }
+      .avatar-hero-wrap { width: 64px; height: 64px; margin-bottom: 10px; }
+      .avatar-hero-img { width: 64px; height: 64px; }
+      .welcome-greeting { font-size: 18px; margin-bottom: 4px; }
+      .welcome-sub { font-size: 12px; margin-bottom: 10px; }
+      .cards-grid { gap: 6px; margin-bottom: 8px; }
+      .card { padding: 9px 10px; font-size: 12px; }
+    }
+
+    @media (max-width: 350px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ Phone Shell ═════════════════════════════════════════════ -->
+<div class="phone-shell" role="main">
+
+  <!-- Status Bar (Charging / Battery Icon Removed) -->
+  <div class="status-bar">
+    <span class="time">13:13</span>
+    <div class="status-icons">
+      <!-- Signal -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="16" width="3" height="7" rx="1"/>
+        <rect x="6" y="11" width="3" height="12" rx="1"/>
+        <rect x="11" y="6" width="3" height="17" rx="1"/>
+        <rect x="16" y="2" width="3" height="21" rx="1" opacity="0.3"/>
+      </svg>
+      <!-- WiFi -->
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+        <path d="M1.42 9A16 16 0 0 1 22.58 9"/>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+        <circle cx="12" cy="20" r="1" fill="currentColor"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5" opacity="0.4"/><rect x="3" y="14" width="7" height="7" rx="1.5" opacity="0.4"/><path d="M14 17.5 A3.5 3.5 0 1 0 21 17.5 A3.5 3.5 0 1 0 14 17.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+      </div>
+      <span class="header-title">ShrikAi</span>
+    </div>
+    <img src="profile.jpg" alt="Srikantha Profile" class="header-avatar-img" id="header-avatar" />
+  </div>
+
+  <!-- ─── Welcome Screen ─────────────────────────────────────── -->
+  <div id="welcome-screen">
+    <div class="welcome-body">
+      <div class="avatar-hero-wrap">
+        <img src="profile.jpg" alt="Srikantha Profile" class="avatar-hero-img" />
+      </div>
+
+      <h1 class="welcome-greeting" id="welcome-greeting-text">
+        Good morning!<br>I'm ShrikAi, Srikantha's AI.
+      </h1>
+      <p class="welcome-sub">Ask about his skills, experience, projects, or personality — I'll answer on his behalf.</p>
+
+      <div class="cards-grid" id="cards-grid">
+        <div class="card" data-prompt="What are his key technical skills?" tabindex="0" role="button">What are his key technical skills?</div>
+        <div class="card" data-prompt="Tell me about his work experience" tabindex="0" role="button">Tell me about his work experience</div>
+        <div class="card" data-prompt="What projects has he built?" tabindex="0" role="button">What projects has he built?</div>
+        <div class="card" data-prompt="Describe his personality & work style" tabindex="0" role="button">Describe his personality & work style</div>
+      </div>
+
+      <button class="refresh-btn" id="refresh-btn" type="button">
+        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Refresh prompts
+      </button>
+    </div>
+
+    <!-- Welcome Input -->
+    <div class="input-area">
+      <div class="input-box" id="welcome-input-box">
+        <textarea id="welcome-textarea" rows="1" placeholder="Ask about skills, experience, projects…" autocomplete="off" spellcheck="false"></textarea>
+        <div class="input-actions">
+          <div class="input-left-actions">
+            <button class="tone-btn" type="button" id="tone-btn">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Formal
+              <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+          <div class="input-right-actions">
+            <button class="send-btn" type="button" id="welcome-send-btn" title="Send">
+              <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="input-disclaimer">Answers are based on Srikantha's resume & personal profile.</p>
+    </div>
+  </div>
+
+  <!-- ─── Chat Screen ─────────────────────────────────────────── -->
+  <div id="chat-screen">
+    <div class="chat-messages" id="chat-messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+    <!-- Chat Input -->
+    <div class="chat-input-area">
+      <div class="chat-input-box" id="chat-input-box">
+        <input type="text" id="chat-input" placeholder="Ask a follow-up question…" autocomplete="off" spellcheck="false" />
+        <button class="send-btn" type="button" id="chat-send-btn" title="Send">
+          <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ Scripts ════════════════════════════════════════════════ -->
+<script>
+  const API_BASE = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file://'))
+    ? (window.location.port && window.location.port !== '8000' ? 'http://127.0.0.1:8000' : window.location.origin)
+    : 'http://127.0.0.1:8000';
+  const CHAT_ENDPOINT = `${API_BASE}/chat/`;
+
+  /* ── Prompt suggestions ──────────────────────────────────── */
+  const PROMPTS = [
+    [
+      "What are his key technical skills?",
+      "Tell me about his work experience",
+      "What projects has he built?",
+      "Describe his personality & work style"
+    ],
+    [
+      "What's his educational background?",
+      "What are his top strengths?",
+      "What programming languages does he know?",
+      "Tell me about his certifications"
+    ],
+    [
+      "Is he a good team player?",
+      "What are his career goals?",
+      "What makes him a strong candidate?",
+      "How does he handle work challenges?"
+    ]
+  ];
+
+  let promptPage = 0;
+
+  function renderCards() {
+    const grid = document.getElementById('cards-grid');
+    const set = PROMPTS[promptPage % PROMPTS.length];
+    grid.innerHTML = set.map(p =>
+      `<div class="card" data-prompt="${p}" tabindex="0" role="button">${p}</div>`
+    ).join('');
+    grid.querySelectorAll('.card').forEach(c => {
+      c.addEventListener('click', () => startChat(c.dataset.prompt));
+      c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') startChat(c.dataset.prompt); });
+    });
+  }
+
+  document.getElementById('refresh-btn').addEventListener('click', () => {
+    promptPage++;
+    renderCards();
+  });
+  renderCards();
+
+  /* ── Textarea auto-grow ──────────────────────────────────── */
+  const welcomeTA = document.getElementById('welcome-textarea');
+  const welcomeSend = document.getElementById('welcome-send-btn');
+
+  welcomeTA.addEventListener('input', () => {
+    welcomeTA.style.height = 'auto';
+    welcomeTA.style.height = Math.min(welcomeTA.scrollHeight, 120) + 'px';
+    welcomeSend.classList.toggle('active', welcomeTA.value.trim().length > 0);
+  });
+
+  welcomeTA.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      const txt = welcomeTA.value.trim();
+      if (txt) startChat(txt);
+    }
+  });
+
+  welcomeSend.addEventListener('click', () => {
+    const txt = welcomeTA.value.trim();
+    if (txt) startChat(txt);
+  });
+
+  /* ── Chat input ──────────────────────────────────────────── */
+  const chatInput = document.getElementById('chat-input');
+  const chatSend  = document.getElementById('chat-send-btn');
+
+  chatInput.addEventListener('input', () => {
+    chatSend.classList.toggle('active', chatInput.value.trim().length > 0);
+  });
+
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const txt = chatInput.value.trim();
+      if (txt) sendMessage(txt);
+    }
+  });
+
+  chatSend.addEventListener('click', () => {
+    const txt = chatInput.value.trim();
+    if (txt) sendMessage(txt);
+  });
+
+  /* ── Screen switch ───────────────────────────────────────── */
+  function showChatScreen() {
+    document.getElementById('welcome-screen').style.display = 'none';
+    const cs = document.getElementById('chat-screen');
+    cs.style.display = 'flex';
+    cs.style.flexDirection = 'column';
+  }
+
+  /* ── Render helpers ──────────────────────────────────────── */
+  function appendUserMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const row = document.createElement('div');
+    row.className = 'msg-row user';
+    row.innerHTML = `<div class="msg-bubble">${escHtml(text)}</div>`;
+    msgs.appendChild(row);
+    scrollBottom();
+  }
+
+  function appendTypingIndicator() {
+    const msgs = document.getElementById('chat-messages');
+    const row = document.createElement('div');
+    row.className = 'msg-row ai';
+    row.id = 'typing-indicator';
+    row.innerHTML = `
+      <img src="profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
+      <div class="msg-bubble">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+      </div>`;
+    msgs.appendChild(row);
+    scrollBottom();
+    return row;
+  }
+
+  function removeTypingIndicator() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  function appendAiMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const row = document.createElement('div');
+    row.className = 'msg-row ai';
+    row.innerHTML = `
+      <img src="profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
+      <div class="msg-bubble"><div class="ai-text">${renderMarkdown(text)}</div></div>`;
+    msgs.appendChild(row);
+    scrollBottom();
+  }
+
+  function scrollBottom() {
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderMarkdown(text) {
+    return text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>')
+      .replace(/^/, '<p>').replace(/$/, '</p>');
+  }
+
+  /* ── API call ────────────────────────────────────────────── */
+  async function callApi(question) {
+    const res = await fetch(CHAT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server error ${res.status}`);
+    }
+    const data = await res.json();
+    return data.response;
+  }
+
+  /* ── Start chat (from welcome screen) ───────────────────── */
+  async function startChat(text) {
+    showChatScreen();
+    appendUserMsg(text);
+    await fetchAiReply(text);
+  }
+
+  /* ── Send message (from chat screen) ────────────────────── */
+  async function sendMessage(text) {
+    chatInput.value = '';
+    chatSend.classList.remove('active');
+    appendUserMsg(text);
+    await fetchAiReply(text);
+  }
+
+  /* ── Fetch AI reply ──────────────────────────────────────── */
+  async function fetchAiReply(question) {
+    const typingRow = appendTypingIndicator();
+    chatInput.disabled = true;
+    chatSend.disabled = true;
+
+    try {
+      const answer = await callApi(question);
+      removeTypingIndicator();
+      appendAiMsg(answer);
+    } catch (err) {
+      removeTypingIndicator();
+      appendAiMsg(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+    } finally {
+      chatInput.disabled = false;
+      chatSend.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  /* ── Greeting based on day & time ───────────────────────── */
+  function updateGreeting() {
+    const now = new Date();
+    const h = now.getHours();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = days[now.getDay()];
+
+    let g = 'Good morning';
+    let emoji = '☀️';
+
+    if (h >= 12 && h < 17) {
+      g = 'Good afternoon';
+      emoji = '🌤️';
+    } else if (h >= 17 && h < 22) {
+      g = 'Good evening';
+      emoji = '🌙';
+    } else if (h >= 22 || h < 5) {
+      g = 'Good evening';
+      emoji = '🌌';
+    }
+
+    const el = document.getElementById('welcome-greeting-text');
+    if (el) {
+      el.innerHTML = `${g}, Happy ${dayName}! ${emoji}<br>I'm ShrikAi, Srikantha's AI.`;
+    }
+  }
+  updateGreeting();
+
+  /* ── Update clock ────────────────────────────────────────── */
+  function updateClock() {
+    const now = new Date();
+    const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    document.querySelector('.time').textContent = t;
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+</script>
+</body>
+</html>

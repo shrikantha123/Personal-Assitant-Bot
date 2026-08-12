@@ -77,7 +77,7 @@ frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 if os.path.isdir(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
-
+              
 @app.get("/", tags=["ui"])
 async def root():
     """Serve the ThinkAI frontend UI."""

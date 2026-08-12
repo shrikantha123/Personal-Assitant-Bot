@@ -82,3 +82,11 @@ Open your browser and navigate to:
 ## 📄 License & Credits
 
 Designed & Developed by **Srikantha** — Powered by FastAPI & Gemini.
+
+
+origin=protocol +domain+port
+
+same origin policy
+http/localhost:3000
+
+http/localhost:8000

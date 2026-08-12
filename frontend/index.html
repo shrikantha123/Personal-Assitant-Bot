@@ -47,11 +47,11 @@
 
     /* ─── Phone Shell ─────────────────────────────────── */
     .phone-shell {
-      width: 100%;
-      max-width: 410px;
-      height: calc(100vh - 32px);
-      max-height: 844px;
-      min-height: 560px;
+      width: min(920px, calc(100vw - 48px));
+      max-width: 920px;
+      height: min(calc(100vh - 48px), 860px);
+      max-height: 860px;
+      min-height: 620px;
       background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 40%);
       border-radius: 44px;
       display: flex;

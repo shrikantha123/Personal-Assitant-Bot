@@ -78,6 +78,15 @@ if os.path.isdir(frontend_dir):
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
               
+@app.get("/profile.jpg", tags=["ui"])
+async def profile_image():
+    """Serve profile image directly at /profile.jpg."""
+    profile_path = os.path.join(frontend_dir, "profile.jpg")
+    if os.path.isfile(profile_path):
+        return FileResponse(profile_path)
+    return {"error": "Profile image not found"}
+
+
 @app.get("/", tags=["ui"])
 async def root():
     """Serve the ThinkAI frontend UI."""

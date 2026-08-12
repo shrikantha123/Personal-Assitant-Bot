@@ -445,7 +445,7 @@
           <span class="header-badge"><span class="status-dot"></span>Personal Assistant</span>
         </div>
       </div>
-      <img src="profile.jpg" alt="Srikantha Profile" class="header-avatar-img" id="header-avatar" />
+      <img src="/static/profile.jpg" alt="Srikantha Profile" class="header-avatar-img" id="header-avatar" />
     </div>
   </div>
 
@@ -453,7 +453,7 @@
   <div id="welcome-screen">
     <div class="welcome-body">
       <div class="avatar-hero-wrap">
-        <img src="profile.jpg" alt="Srikantha Profile" class="avatar-hero-img" />
+        <img src="/static/profile.jpg" alt="Srikantha Profile" class="avatar-hero-img" />
       </div>
 
       <h1 class="welcome-greeting" id="welcome-greeting-text">
@@ -650,7 +650,7 @@
     row.className = 'msg-row ai';
     row.id = 'typing-indicator';
     row.innerHTML = `
-      <img src="profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
+      <img src="/static/profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
       <div class="msg-bubble">
         <div class="typing-dots"><span></span><span></span><span></span></div>
       </div>`;
@@ -669,7 +669,7 @@
     const row = document.createElement('div');
     row.className = 'msg-row ai';
     row.innerHTML = `
-      <img src="profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
+      <img src="/static/profile.jpg" class="ai-avatar-sm" alt="ShrikAi" />
       <div class="msg-bubble"><div class="ai-text">${renderMarkdown(text)}</div></div>`;
     msgs.appendChild(row);
     scrollBottom();
